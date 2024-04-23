@@ -218,6 +218,10 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(underlineLinks(opts.Prompt)))
 	}
 
+	if opts.Multiline {
+		// resize panel
+	}
+
 	if err := self.setKeyBindings(cancel, opts); err != nil {
 		cancel()
 		return err
@@ -372,7 +376,8 @@ func (self *ConfirmationHelper) resizeConfirmationPanel() {
 	}
 	panelHeight := getMessageHeight(wrap, prompt, panelWidth) + suggestionsViewHeight
 	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(panelWidth, panelHeight)
-	confirmationViewBottom := y1 - suggestionsViewHeight
+	// testing panel size fix
+	confirmationViewBottom := y1 + 20
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Confirmation.Name(), x0, y0, x1, confirmationViewBottom, 0)
 
 	suggestionsViewTop := confirmationViewBottom + 1
