@@ -377,7 +377,7 @@ func (self *ConfirmationHelper) resizeConfirmationPanel() {
 	panelHeight := getMessageHeight(wrap, prompt, panelWidth) + suggestionsViewHeight
 	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(panelWidth, panelHeight)
 	// testing panel size fix
-	confirmationViewBottom := y1 + 20
+	confirmationViewBottom := y1 - suggestionsViewHeight
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Confirmation.Name(), x0, y0, x1, confirmationViewBottom, 0)
 
 	suggestionsViewTop := confirmationViewBottom + 1

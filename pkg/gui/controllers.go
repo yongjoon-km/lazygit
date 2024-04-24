@@ -121,6 +121,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		View:            viewHelper,
 		Refresh:         refreshHelper,
 		Confirmation:    helpers.NewConfirmationHelper(helperCommon),
+		Textbox:		 helpers.NewTextboxHelper(helperCommon),
 		Mode:            modeHelper,
 		AppStatus:       appStatusHelper,
 		InlineStatus:    helpers.NewInlineStatusHelper(helperCommon, windowHelper),
