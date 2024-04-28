@@ -18,6 +18,14 @@ func NewTextboxHelper(c *HelperCommon) *TextboxHelper {
 	}
 }
 
+func (self *TextboxHelper) DeactivateTextboxPrompt() {
+	self.c.Mutexes().PopupMutex.Lock()
+	self.c.State().GetRepoState().SetCurrentPopupOpts(nil)
+	self.c.Mutexes().PopupMutex.Unlock()
+
+	self.c.Views().Textbox.Visible = false
+}
+
 func (self *TextboxHelper) CreatePopupPanel(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
 	self.c.Mutexes().PopupMutex.Lock()
 	defer self.c.Mutexes().PopupMutex.Unlock()
