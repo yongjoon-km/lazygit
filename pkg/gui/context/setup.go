@@ -100,16 +100,7 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 			c,
 		),
 		Confirmation:  NewConfirmationContext(c),
-		Textbox: NewSimpleContext(
-			NewBaseContext(NewBaseContextOpts{
-				Kind:                  types.PERSISTENT_POPUP,
-				View:                  c.Views().Textbox,
-				WindowName:            "textbox",
-				Key:                   "textbox",
-				Focusable:             true,
-				HasUncontrolledBounds: true,
-			}),
-		),
+		Textbox:       NewTextboxContext(c),
 		CommitMessage: NewCommitMessageContext(c),
 		CommitDescription: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{

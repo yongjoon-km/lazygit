@@ -3,10 +3,11 @@ package helpers
 import (
 	goContext "context"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
-
-
 
 type TextboxHelper struct {
 	c *HelperCommon
@@ -24,6 +25,13 @@ func (self *TextboxHelper) DeactivateTextboxPrompt() {
 	self.c.Mutexes().PopupMutex.Unlock()
 
 	self.c.Views().Textbox.Visible = false
+	self.clearConfirmationViewKeyBindings()
+}
+
+func (self *TextboxHelper) clearConfirmationViewKeyBindings() {
+	noop := func() error { return nil }
+	self.c.Contexts().Textbox.State.OnConfirm = noop
+	self.c.Contexts().Textbox.State.OnClose = noop
 }
 
 func (self *TextboxHelper) CreatePopupPanel(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
@@ -44,13 +52,103 @@ func (self *TextboxHelper) CreatePopupPanel(ctx goContext.Context, opts types.Cr
 	}
 
 	textboxView := self.c.Views().Textbox
-	textboxView.Editable = opts.Editable
 
+	// Set title and sub title of textbox
+	textboxView.Title = opts.Title
+	// Introduce confirm textbox to users
+	textboxView.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.TextboxSubTitle,
+		map[string]string{
+			"textboxConfirmBinding": keybindings.Label(self.c.UserConfig.Keybinding.Universal.ConfirmInEditor),
+		})
+
+	textboxView.Wrap = !opts.Editable
+	textboxView.FgColor = theme.GocuiDefaultTextColor
+	textboxView.Mask = runeForMask(opts.Mask)
+
+	// Set view position
+	width := self.getPopupPanelWidth()
+	height := self.getPopupPanelHeight()
+	x0, y0, x1, y1 := self.getAbsoluteCoordinates(width, height)
+	self.c.GocuiGui().SetView(textboxView.Name(), x0, y0, x1, y1, 0)
+
+	// Render text in textbox
+	textboxView.Editable = opts.Editable
 	textArea := textboxView.TextArea
 	textArea.Clear()
 	textArea.TypeString(opts.Prompt)
+	textboxView.RenderTextArea()
 
+	// Setting Handlers
+	self.c.Contexts().Textbox.State.OnConfirm = self.wrappedPromptConfirmationFunction(cancel, opts.HandleConfirmPrompt, func() string { return self.c.Views().Textbox.TextArea.GetContent() })
+	self.c.Contexts().Textbox.State.OnClose = self.wrappedConfirmationFunction(cancel, opts.HandleClose)
+
+	// Set text box to current popup
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
 	return self.c.PushContext(self.c.Contexts().Textbox)
+}
+
+func (self *TextboxHelper) wrappedPromptConfirmationFunction(cancel goContext.CancelFunc, function func(string) error, getResponse func() string) func() error {
+	return self.wrappedConfirmationFunction(cancel, func() error {
+		return function(getResponse())
+	})
+}
+
+func (self *TextboxHelper) wrappedConfirmationFunction(cancel goContext.CancelFunc, function func() error) func() error {
+	return func() error {
+		cancel()
+
+		if err := self.c.PopContext(); err != nil {
+			return err
+		}
+
+		if function != nil {
+			if err := function(); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+}
+
+func (self *TextboxHelper) getAbsoluteCoordinates(panelWidth int, panelHeight int) (int, int, int, int) {
+	width, height := self.c.GocuiGui().Size()
+	if panelHeight > height*3/4 {
+		panelHeight = height * 3 / 4
+	}
+	return width/2 - panelWidth/2,
+		height/2 - panelHeight/2 - panelHeight%2 - 1,
+		width/2 + panelWidth/2,
+		height/2 + panelHeight/2
+}
+
+func (self *TextboxHelper) getPopupPanelWidth() int {
+	width, _ := self.c.GocuiGui().Size()
+	// we want a minimum width up to a point, then we do it based on ratio.
+	panelWidth := 4 * width / 7
+	minWidth := 80
+	if panelWidth < minWidth {
+		if width-2 < minWidth {
+			panelWidth = width - 2
+		} else {
+			panelWidth = minWidth
+		}
+	}
+
+	return panelWidth
+}
+
+func (self *TextboxHelper) getPopupPanelHeight() int {
+	_, height := self.c.GocuiGui().Size()
+	// we want a minimum width up to a point, then we do it based on ratio.
+	var panelHeight int
+	maxHeight := 11
+	if height-2 > maxHeight {
+		panelHeight = maxHeight
+	} else {
+		panelHeight = height - 2
+	}
+
+	return panelHeight
 }

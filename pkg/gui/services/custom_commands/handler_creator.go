@@ -137,15 +137,9 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 }
 
 func (self *HandlerCreator) textboxPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
-	findSuggestionsFn, err := self.generateFindSuggestionsFunc(prompt)
-	if err != nil {
-		return err
-	}
-
 	return self.c.Textbox(types.PromptOpts{
-		Title:               prompt.Title,
-		InitialContent:      prompt.InitialValue,
-		FindSuggestionsFunc: findSuggestionsFn,
+		Title:          prompt.Title,
+		InitialContent: prompt.InitialValue,
 		HandleConfirm: func(str string) error {
 			return wrappedF(str)
 		},

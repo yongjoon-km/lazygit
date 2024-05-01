@@ -218,10 +218,6 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(underlineLinks(opts.Prompt)))
 	}
 
-	if opts.Multiline {
-		// resize panel
-	}
-
 	if err := self.setKeyBindings(cancel, opts); err != nil {
 		cancel()
 		return err

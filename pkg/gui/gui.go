@@ -510,7 +510,7 @@ func NewGui(
 		cmn,
 		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
 			if opts.Multiline {
-				gui.helpers.Textbox.CreatePopupPanel(ctx, opts)
+				return gui.helpers.Textbox.CreatePopupPanel(ctx, opts)
 			}
 			return gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
 		},
