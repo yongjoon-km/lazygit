@@ -52,7 +52,6 @@ func (self *TextboxHelper) CreatePopupPanel(ctx goContext.Context, opts types.Cr
 	}
 
 	textboxView := self.c.Views().Textbox
-
 	// Set title and sub title of textbox
 	textboxView.Title = opts.Title
 	// Introduce confirm textbox to users
